@@ -1,35 +1,39 @@
-import cv2
+from picamera2 import Picamera2
 
 
 class Camera:
 
     def __init__(
         self,
-        camera_index=0,
         width=640,
         height=480
     ):
 
-        self.cap = cv2.VideoCapture(camera_index)
-
-        if not self.cap.isOpened():
-            raise RuntimeError("Camera could not be opened.")
-
-        self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, width)
-        self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
-
         self.width = width
         self.height = height
 
+        self.picam2 = Picamera2()
+
+        config = self.picam2.create_preview_configuration(
+            main={
+                "size": (width, height),
+                "format": "RGB888"
+            }
+        )
+
+        self.picam2.configure(config)
+
+        self.picam2.start()
+
     def read(self):
 
-        ret, frame = self.cap.read()
+        frame = self.picam2.capture_array()
 
-        if not ret:
+        if frame is None:
             return None
 
         return frame
 
     def release(self):
 
-        self.cap.release()
+        self.picam2.stop()
