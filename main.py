@@ -1,8 +1,9 @@
 import cv2
 
+from web.server import stream, start_server
+import threading
 from camera.camera import Camera
 
-from hardware import servo
 from vision.face_detector import FaceDetector
 from vision.tracker import FaceTracker
 
@@ -25,6 +26,12 @@ def main():
     motors = Motors()
 
     controller = RobotController()
+
+    threading.Thread(
+        target=start_server,
+        daemon=True
+        ).start()
+    
 
     try:
 
@@ -113,13 +120,9 @@ def main():
                 2
             )
 
-            cv2.imshow("Face Following Robot", frame)
+            stream.update(frame)
 
-            key = cv2.waitKey(1)
-
-            if key == 27:
-                break
-
+            
     finally:
 
         motors.cleanup()
@@ -128,7 +131,8 @@ def main():
 
         camera.release()
 
-        cv2.destroyAllWindows()
+        
+
 
 
 if __name__ == "__main__":
